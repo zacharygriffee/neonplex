@@ -1,6 +1,6 @@
 {
   "name": "@neonloom/plex",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "private": false,
   "type": "module",
   "description": "Standalone Plex multiplexer toolkit extracted from NeonLoom core.",
