@@ -17,10 +17,17 @@ jobs:
         node-version:
           - lts/*
           - current
+    env:
+      NPM_TOKEN: ${{ secrets.NPM_TOKEN || '' }}
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Configure npm auth
+        if: env.NPM_TOKEN != ''
+        run: |
+          echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" >> ~/.npmrc
 
       - name: Setup Node.js
         uses: actions/setup-node@v4

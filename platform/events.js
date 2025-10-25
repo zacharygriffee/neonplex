@@ -7,7 +7,9 @@ const tryImport = async (specifier) => {
 }
 
 const moduleCandidate =
+  (await tryImport('eventemitter3')) ??
   (await tryImport('node:events')) ??
+  (await tryImport('events')) ??
   (await tryImport('bare-events'))
 
 let EventEmitter
@@ -16,6 +18,12 @@ let isEventEmitterNative = false
 if (moduleCandidate) {
   EventEmitter = moduleCandidate.EventEmitter ?? moduleCandidate.default ?? moduleCandidate
   isEventEmitterNative = true
+  if (EventEmitter && EventEmitter.prototype && typeof EventEmitter.prototype.setMaxListeners !== 'function') {
+    EventEmitter.prototype.setMaxListeners = function () { return this }
+  }
+  if (EventEmitter && EventEmitter.prototype && typeof EventEmitter.prototype.off !== 'function' && typeof EventEmitter.prototype.removeListener === 'function') {
+    EventEmitter.prototype.off = EventEmitter.prototype.removeListener
+  }
 } else {
   class SimpleEmitter {
     constructor () {

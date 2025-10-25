@@ -26,9 +26,7 @@
     "./bytes": "./bytes/index.js",
     "./result": "./result/index.js",
     "./log": "./log/index.js",
-    "./env": "./env/index.js",
-    "./browser": "./browser/index.js",
-    "./browser/index": "./browser/index.js"
+    "./env": "./env/index.js"
   },
   "files": [
     "*.js",
@@ -40,7 +38,6 @@
     "result/**/*.js",
     "log/**/*.js",
     "env/**/*.js",
-    "browser/**/*.js",
     "platform/**/*.js",
     "test/**/*.js",
     "types/**/*.d.ts"
@@ -49,24 +46,20 @@
     "test": "brittle test/*.brittle.test.js",
     "smoke": "npm run smoke:tcp && npm run smoke:ws",
     "smoke:tcp": "node dev/smoke-tcp.js",
-    "smoke:ws": "node dev/smoke-ws.js",
-    "build:browser": "rollup -c"
+    "smoke:ws": "node dev/smoke-ws.js"
   },
   "types": "./types/index.d.ts",
   "dependencies": {
     "b4a": "^1.6.7",
     "compact-encoding": "^2.16.1",
     "duplex-through": "^1.0.2",
+    "eventemitter3": "^5.0.1",
     "framed-stream": "^1.0.1",
     "protomux": "^3.10.1",
     "streamx": "^2.22.1"
   },
   "devDependencies": {
-    "@rollup/plugin-commonjs": "^28.0.9",
-    "@rollup/plugin-json": "^6.1.0",
-    "@rollup/plugin-node-resolve": "^16.0.3",
     "brittle": "^3.18.6",
-    "rollup": "^4.52.5",
     "ws": "^8.18.0"
   }
 }

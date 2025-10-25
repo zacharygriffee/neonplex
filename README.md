@@ -106,7 +106,7 @@ const wsStream = createWebSocketStream(webSocket);
 ## Environments
 
 - **Node.js**: Tested against active LTS. TCP transports typically use `net` sockets as shown above.
-- **Browsers / runtimes**: WebSocket transports work via `createWebSocketStream`, but broader browser coverage is in progress. When bundling, ensure `ws/` helpers and `b4a` are included; document any required shims as they are discovered.
+- **Bare runtime**: Core modules function when Bare provides Node-compatible shims (`bare-*`). Formal docs will follow; for now the library defers to runtime adapters and avoids Node-only fallbacks when unavailable.
 - **Binary data**: Always use `b4a` utilities for buffers to remain portable across environments.
 
 ## Logging
@@ -123,13 +123,5 @@ npm test
 
 Upcoming smoke tests will live under `npm run smoke:*` scripts and use the `dev/` utilities to exercise TCP and WebSocket transports end-to-end.
 
-- Build a browser-focused ESM bundle (minimal surface: `listen`, `connect`, channel helpers, WebSocket stream):
-
-```sh
-npm run build:browser
-```
-
-This emits `dist/plex.browser.js` via Rollup. The bundle keeps `b4a`, `streamx`, and `protomux` as externals so downstream bundlers can decide how to polyfill or alias Node internals.
-
 - More architectural details live in `docs/architecture.md`.
-- Runtime compatibility notes (Node, Bare, browser) live in `docs/runtime-compatibility.md`.
+- Runtime compatibility notes (Node & Bare focus) live in `docs/runtime-compatibility.md`.
