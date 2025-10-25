@@ -38,11 +38,16 @@
     "result/**/*.js",
     "log/**/*.js",
     "env/**/*.js",
-    "test/**/*.js"
+    "test/**/*.js",
+    "types/**/*.d.ts"
   ],
   "scripts": {
-    "test": "brittle test/*.brittle.test.js"
+    "test": "brittle test/*.brittle.test.js",
+    "smoke": "npm run smoke:tcp && npm run smoke:ws",
+    "smoke:tcp": "node dev/smoke-tcp.js",
+    "smoke:ws": "node dev/smoke-ws.js"
   },
+  "types": "./types/index.d.ts",
   "dependencies": {
     "b4a": "^1.6.7",
     "compact-encoding": "^2.16.1",
@@ -52,6 +57,7 @@
     "streamx": "^2.22.1"
   },
   "devDependencies": {
-    "brittle": "^3.18.6"
+    "brittle": "^3.18.6",
+    "ws": "^8.18.0"
   }
 }
