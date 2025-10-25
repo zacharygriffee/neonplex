@@ -1,0 +1,57 @@
+{
+  "name": "@neonloom/plex",
+  "version": "0.1.0",
+  "private": false,
+  "type": "module",
+  "description": "Standalone Plex multiplexer toolkit extracted from NeonLoom core.",
+  "license": "MIT",
+  "exports": {
+    ".": "./index.js",
+    "./channel": "./channel.js",
+    "./config": "./config.js",
+    "./duplex": "./duplex.js",
+    "./peer": "./peer.js",
+    "./pool": "./pool.js",
+    "./rpc": "./rpc.js",
+    "./service": "./service.js",
+    "./ws": "./ws/index.js",
+    "./ws/index": "./ws/index.js",
+    "./ws/WebSocketStream": "./ws/WebSocketStream.js",
+    "./ws/isWebSocket": "./ws/isWebSocket.js",
+    "./ws/symbol": "./ws/symbol.js",
+    "./dev/pair": "./dev/pair.js",
+    "./dev/broker": "./dev/broker.js",
+    "./protocol/store": "./protocol/store.js",
+    "./codec": "./codec/index.js",
+    "./bytes": "./bytes/index.js",
+    "./result": "./result/index.js",
+    "./log": "./log/index.js",
+    "./env": "./env/index.js"
+  },
+  "files": [
+    "*.js",
+    "dev/**/*.js",
+    "ws/**/*.js",
+    "protocol/**/*.js",
+    "codec/**/*.js",
+    "bytes/**/*.js",
+    "result/**/*.js",
+    "log/**/*.js",
+    "env/**/*.js",
+    "test/**/*.js"
+  ],
+  "scripts": {
+    "test": "brittle test/*.brittle.test.js"
+  },
+  "dependencies": {
+    "b4a": "^1.6.7",
+    "compact-encoding": "^2.16.1",
+    "duplex-through": "^1.0.2",
+    "framed-stream": "^1.0.1",
+    "protomux": "^3.10.1",
+    "streamx": "^2.22.1"
+  },
+  "devDependencies": {
+    "brittle": "^3.18.6"
+  }
+}
