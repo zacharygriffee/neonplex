@@ -63,6 +63,38 @@ All exports are available via the package export map, e.g. `import { Pool } from
 - `ws/*`: WebSocket transport helpers, including `WebSocketStream` and WebSocket detection utilities.
 - `codec/*`, `bytes/*`, `result/*`, `log/*`, `env/*`: Supporting modules that keep encoding, binary, logging, results, and environment concerns reusable and consistent.
 
+### Module cheatsheet
+
+```js
+// Binary helpers (Node + browser safe)
+import { toU8, equal, utf8 } from '@neonloom/plex/bytes';
+const payload = toU8('hello');
+console.log(equal(payload, utf8.encode('hello'))); // true
+
+// Codec factory (wraps compact-encoding)
+import { makeCodec } from '@neonloom/plex/codec';
+const textCodec = makeCodec('utf8');
+const encoded = textCodec.encode('hi');
+
+// Result helpers (typed envelopes)
+import { ok, err } from '@neonloom/plex/result';
+const value = ok({ count: 1 });
+const failure = err('Timeout', 'Store did not respond in time');
+
+// Logger
+import { createLogger } from '@neonloom/plex/log';
+const log = createLogger({ name: 'example', level: 'info' });
+log.info('connected', { peer: 'alpha' });
+
+// Environment bootstrap
+import { loadRootEnv } from '@neonloom/plex/env';
+loadRootEnv(); // loads once globally
+
+// WebSocket stream wrapper (Node or browser WebSocket)
+import { createWebSocketStream } from '@neonloom/plex/ws';
+const wsStream = createWebSocketStream(webSocket);
+```
+
 ## Architecture notes
 
 - Plex builds on top of `protomux`, mapping a single logical channel to a streamx `Duplex`.
@@ -90,3 +122,5 @@ npm test
 ```
 
 Upcoming smoke tests will live under `npm run smoke:*` scripts and use the `dev/` utilities to exercise TCP and WebSocket transports end-to-end.
+
+More architectural details live in `docs/architecture.md`.
