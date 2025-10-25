@@ -123,4 +123,5 @@ npm test
 
 Upcoming smoke tests will live under `npm run smoke:*` scripts and use the `dev/` utilities to exercise TCP and WebSocket transports end-to-end.
 
-More architectural details live in `docs/architecture.md`.
+- More architectural details live in `docs/architecture.md`.
+- Runtime compatibility notes (Node, Bare, browser) live in `docs/runtime-compatibility.md`.
