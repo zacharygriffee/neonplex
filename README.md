@@ -123,5 +123,13 @@ npm test
 
 Upcoming smoke tests will live under `npm run smoke:*` scripts and use the `dev/` utilities to exercise TCP and WebSocket transports end-to-end.
 
+- Build a browser-focused ESM bundle (minimal surface: `listen`, `connect`, channel helpers, WebSocket stream):
+
+```sh
+npm run build:browser
+```
+
+This emits `dist/plex.browser.js` via Rollup. The bundle keeps `b4a`, `streamx`, and `protomux` as externals so downstream bundlers can decide how to polyfill or alias Node internals.
+
 - More architectural details live in `docs/architecture.md`.
 - Runtime compatibility notes (Node, Bare, browser) live in `docs/runtime-compatibility.md`.

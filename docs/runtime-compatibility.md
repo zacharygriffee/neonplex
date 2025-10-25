@@ -9,6 +9,13 @@
 - **Node-specific concerns** live in the optional layers (`log`, `env`, `pool`, `rpc`) because they reference `node:fs`, `node:path`, and `node:events` statically. Bare can satisfy these via import maps/aliases, but browsers need shims or stubs.
 - **Dev tooling (`dev/*`, smoke scripts)** intentionally target Node for local debugging and can be excluded from production bundles.
 
+### Browser Bundle
+
+- `npm run build:browser` generates `dist/plex.browser.js`, an ESM build produced via Rollup from `browser/index.js`.
+- The bundle exposes `listen`, `connect`, `listenChannel`, `connectChannel`, and `createWebSocketStream`.
+- Externalised deps: `protomux`, `streamx`, `b4a`, and Node-adjacent adapters (`events`, `bare-*`). Supply aliases/polyfills in your application manifest.
+- Logging, RPC, and pool tracing degrade gracefully (console-only) when filesystem/EventEmitter polyfills are absent.
+
 ## Module Matrix
 
 | Module / Entry               | Node.js | Bare | Browser | Notes |
