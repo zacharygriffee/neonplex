@@ -1,6 +1,6 @@
 // @ts-check
-import fs from 'node:fs';
-import path from 'node:path';
+import { fs, isFsAvailable } from './platform/fs.js';
+import { path } from './platform/path.js';
 import b4a from 'b4a';
 import c from 'compact-encoding';
 import { ok, err, CODES } from './result/index.js';
@@ -186,7 +186,7 @@ function trace(side, event, payload) {
   const json = JSON.stringify(payload);
   const line = `[plex-rpc][trace] ${side} ${event} ${json}`;
   try { console.log(line); } catch {}
-  if (!TRACE_PATH) return;
+  if (!TRACE_PATH || !isFsAvailable) return;
   try {
     if (!traceStream) {
       try { fs.mkdirSync(path.dirname(TRACE_PATH), { recursive: true }); } catch {}
@@ -208,7 +208,7 @@ function traceFrame(side, direction, frameBuf, payload) {
     frame: frameBuf && frameBuf.length ? shortHex(frameBuf.subarray(0, 64)) : undefined,
     ...payload
   };
-  if (!FRAME_TRACE_PATH) {
+  if (!FRAME_TRACE_PATH || !isFsAvailable) {
     try { console.log('[plex-rpc][frame]', JSON.stringify(meta)); } catch {}
     return;
   }

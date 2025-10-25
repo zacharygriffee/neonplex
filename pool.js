@@ -1,7 +1,7 @@
 // @ts-check
-import fs from 'node:fs';
-import path from 'node:path';
-import { EventEmitter } from 'node:events';
+import { fs, isFsAvailable } from './platform/fs.js';
+import { path } from './platform/path.js';
+import { EventEmitter } from './platform/events.js';
 import { createStorePortProxyOverPlex } from './rpc.js';
 import b4a from 'b4a';
 import { ok } from './result/index.js';
@@ -29,7 +29,7 @@ export function createPeerPool () {
     const json = JSON.stringify(payload);
     const line = `[peer-pool][trace] ${event} ${json}`;
     try { console.log(line); } catch {}
-    if (!TRACE_PATH) return;
+    if (!TRACE_PATH || !isFsAvailable) return;
     try {
       if (!traceStream) {
         try { fs.mkdirSync(path.dirname(TRACE_PATH), { recursive: true }); } catch {}

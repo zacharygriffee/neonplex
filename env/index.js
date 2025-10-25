@@ -3,8 +3,8 @@
 // - Walks up from a starting directory to find the nearest `.env`.
 // - Parses KEY=VALUE lines (no interpolation). Quoted values are unwrapped.
 // - Does not override existing process.env keys by default.
-import fs from 'node:fs';
-import path from 'node:path';
+import { fs } from '../platform/fs.js';
+import { path } from '../platform/path.js';
 
 /**
  * Locate a .env file by walking up parent directories.

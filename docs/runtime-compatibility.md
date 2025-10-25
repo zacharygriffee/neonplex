@@ -18,10 +18,10 @@
 | `bytes/*`, `codec/*`, `result/*` | ✅ | ✅ | ✅ | No platform assumptions; depends on `b4a`. |
 | `peer.js`, `service.js`      | ✅ | ✅ | ✅ | Works with any transport that fulfils `streamx` contracts. |
 | `ws/*`                       | ✅ | ✅ | ⚠️ | Requires DOM-like WebSocket API; in Node we patch using `ws`. |
-| `log/index.js`               | ✅ | ⚠️ | ⚠️ | Static `node:fs`/`node:path` imports for persistent sinks. Needs import-map alias (`fs` → `bare-fs`) and browser stub. |
-| `pool.js`                    | ✅ | ⚠️ | ⚠️ | Uses `node:fs`, `node:path`, `node:events` for trace files/emitter. Alias to `bare-*` equivalents or refactor to lazy optional requires. |
-| `rpc.js`                     | ✅ | ⚠️ | ⚠️ | Same file persistence as `pool`, plus environment-driven tracing. |
-| `env/index.js`               | ✅ | ⚠️ | ⚠️ | Reads `.env` files via `node:fs`. Provide optional dependency or expose `loadRootEnv` as no-op in non-Node builds. |
+| `log/index.js`               | ✅ | ⚠️ | ⚠️ | Uses platform adapter that prefers `node:fs`/`bare-fs`; falls back to console-only logs when file IO is missing. Provide Bare aliases and browser stubs. |
+| `pool.js`                    | ✅ | ⚠️ | ⚠️ | Platform adapters cover `fs`, `path`, `events`; tracing silently degrades when file IO/EventEmitter unavailable. |
+| `rpc.js`                     | ✅ | ⚠️ | ⚠️ | Same adapters as `pool`; frame/trace files skipped when file IO missing. |
+| `env/index.js`               | ✅ | ⚠️ | ⚠️ | `.env` loading now optional—fails quietly without `fs`. Bare/browser consumers can no-op the helper. |
 | `dev/*`, `smoke-*`           | ✅ | 🚫 | 🚫 | Node-only tooling; safe to skip in Bare/browser bundles. |
 
 Legend: ✅ works out-of-the-box, ⚠️ needs shims/aliases, 🚫 not supported.

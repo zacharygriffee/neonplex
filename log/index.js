@@ -1,6 +1,6 @@
 // @ts-check
-import fs from 'node:fs';
-import path from 'node:path';
+import { fs, isFsAvailable } from '../platform/fs.js';
+import { path } from '../platform/path.js';
 import { loadRootEnv } from '../env/index.js';
 loadRootEnv();
 
@@ -184,7 +184,7 @@ export function createConsoleSink ({ formatter = createJsonLineFormatter(), stde
 }
 
 export function createFileSink ({ path: filePath, level = 'info', formatter = createJsonLineFormatter() } = {}) {
-  if (!filePath) return null;
+  if (!filePath || !isFsAvailable) return null;
   const thresholdName = resolveLogLevelName(level, 'info');
   const thresholdValue = LEVEL_VALUES[thresholdName];
   let stream;
@@ -242,11 +242,11 @@ export function createLogger (options = {}) {
   const formatFn = typeof formatter === 'function' ? formatter : resolveFormatter(format);
   const sinkList = Array.isArray(sinks) ? [...sinks] : [];
   if (typeof sink === 'function') sinkList.push(sink);
-  if (!sinkList.length) sinkList.push(createConsoleSink({ formatter: formatFn, stderrLevel }));
-  if (persistPath && !sinkList.some((fn) => fn?._isFileSink)) {
-    const fileSink = createFileSink({ path: persistPath, level: persistLevel });
-    if (fileSink) sinkList.push(fileSink);
-  }
+    if (!sinkList.length) sinkList.push(createConsoleSink({ formatter: formatFn, stderrLevel }));
+    if (persistPath && isFsAvailable && !sinkList.some((fn) => fn?._isFileSink)) {
+      const fileSink = createFileSink({ path: persistPath, level: persistLevel });
+      if (fileSink) sinkList.push(fileSink);
+    }
   const baseContext = { ...context };
   const now = typeof timeSource === 'function' ? timeSource : () => new Date();
 

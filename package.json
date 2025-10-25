@@ -38,6 +38,7 @@
     "result/**/*.js",
     "log/**/*.js",
     "env/**/*.js",
+    "platform/**/*.js",
     "test/**/*.js",
     "types/**/*.d.ts"
   ],
