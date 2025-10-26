@@ -5,6 +5,7 @@
   "type": "module",
   "description": "Standalone Plex multiplexer toolkit extracted from NeonLoom core.",
   "license": "MIT",
+  "homepage": "https://github.com/zacharygriffee/neonplex",
   "exports": {
     ".": "./index.js",
     "./channel": "./channel.js",
