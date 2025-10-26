@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // @ts-check
-import assert from 'node:assert/strict'
-import net from 'node:net'
+import assert from 'assert/strict'
+import net from 'net'
 import b4a from 'b4a'
 import { listen, connect } from '../index.js'
 import FramedStream from 'framed-stream'

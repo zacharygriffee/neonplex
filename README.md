@@ -14,7 +14,7 @@ npm install @neonloom/plex
 
 ```js
 import { listen, connect } from '@neonloom/plex';
-import net from 'node:net';
+import net from 'net';
 import b4a from 'b4a';
 
 const id = b4a.from([0x01, 0x02]);

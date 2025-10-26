@@ -7,7 +7,7 @@ const tryImport = async (specifier) => {
 }
 
 const moduleCandidate =
-  (await tryImport('node:path')) ??
+  (await tryImport('path')) ??
   (await tryImport('bare-path'))
 
 const fallbackDirname = (input = '.') => {

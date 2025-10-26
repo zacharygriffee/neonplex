@@ -1,8 +1,8 @@
 // @ts-check
 import { test } from 'brittle';
-import fs from 'node:fs';
-import os from 'node:os';
-import path from 'node:path';
+import fs from 'fs';
+import os from 'os';
+import path from 'path';
 import { createLogger, resolveLogLevelName } from '../index.js';
 
 test('logger emits structured events', (t) => {

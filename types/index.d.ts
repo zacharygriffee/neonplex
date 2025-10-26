@@ -147,7 +147,7 @@ declare module '@neonloom/plex/peer' {
 }
 
 declare module '@neonloom/plex/pool' {
-  import type { EventEmitter } from 'node:events'
+  import type { EventEmitter } from 'events'
 
   export interface PeerPoolStatsEntry {
     id: number

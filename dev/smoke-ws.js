@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // @ts-check
-import assert from 'node:assert/strict'
+import assert from 'assert/strict'
 import { WebSocketServer, WebSocket } from 'ws'
 import b4a from 'b4a'
 import { listen, connect, createWebSocketStream } from '../index.js'

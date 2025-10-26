@@ -7,7 +7,7 @@ const tryImport = async (specifier) => {
 }
 
 const moduleCandidate =
-  (await tryImport('node:fs')) ??
+  (await tryImport('fs')) ??
   (await tryImport('bare-fs'))
 
 const fsModule = moduleCandidate ? (moduleCandidate.default ?? moduleCandidate) : null

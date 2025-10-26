@@ -8,7 +8,6 @@ const tryImport = async (specifier) => {
 
 const moduleCandidate =
   (await tryImport('eventemitter3')) ??
-  (await tryImport('node:events')) ??
   (await tryImport('events')) ??
   (await tryImport('bare-events'))
 
