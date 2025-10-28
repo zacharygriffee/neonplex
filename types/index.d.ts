@@ -81,11 +81,14 @@ declare module '@neonloom/plex/channel' {
 
 declare module '@neonloom/plex/config' {
   import type { PlexNormalizedConfig } from '@neonloom/plex'
+  import type Protomux from 'protomux'
 
   export const defaultProtocol: string
   export const zeroBuff: Uint8Array
   export const defaultCodec: any
+  export const streamMuxSymbol: unique symbol
 
+  export function getMuxFromStream(stream: unknown): Protomux | undefined
   export function fromStream<T extends Record<string, unknown>>(cfg?: T): T & { mux: any }
   export function normalizeCfg<T extends Record<string, unknown>>(cfg?: T): PlexNormalizedConfig & T
 }

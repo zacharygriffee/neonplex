@@ -2,9 +2,25 @@ import { test, solo } from 'brittle'
 import duplexThrough from 'duplex-through'
 import b4a from 'b4a'
 import { listenDuplex, connectDuplex, listen as listenDuplexDefault, connect as connectDuplexDefault } from '../index.js'
+import { fromStream, getMuxFromStream, streamMuxSymbol } from '../config.js'
 import { makeCodec } from '../codec/index.js';
 
 const binaryCodec = makeCodec("binary");
+
+test('fromStream reuses mux cached on stream', t => {
+  t.plan(5)
+
+  const [a] = duplexThrough()
+
+  const cfg1 = fromStream({ stream: a })
+  t.ok(cfg1.mux && cfg1.mux.isProtomux)
+  t.is(a[streamMuxSymbol], cfg1.mux)
+  t.is(getMuxFromStream(a), cfg1.mux)
+
+  const cfg2 = fromStream({ stream: a })
+  t.is(cfg2.mux, cfg1.mux)
+  t.ok(cfg2.mux && cfg2.mux.isProtomux)
+})
 
 test('buffered writes flush on connection and roundtrip', async t => {
   t.plan(5)

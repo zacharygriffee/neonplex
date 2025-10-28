@@ -9,7 +9,21 @@ export const defaultProtocol = 'neonloom/protocol/v1'
 export const zeroBuff = b4a.alloc(0)
 export const defaultCodec = makeCodec('raw')
 const isNormalizedSym = Symbol('plex.normalized')
+const muxSymbol = Symbol.for('plex.protomux')
+export const streamMuxSymbol = muxSymbol
 const log = createLogger({ name: 'plex-config', context: { subsystem: 'plex' } })
+
+/**
+ * Attempt to locate an existing Protomux instance on a stream.
+ * @param {any} stream
+ * @returns {any|undefined}
+ */
+export const getMuxFromStream = (stream) => {
+  if (!stream || typeof stream !== 'object') return undefined
+  if (stream.isProtomux) return stream
+  const existing = stream[muxSymbol]
+  return existing && existing.isProtomux ? existing : undefined
+}
 
 /**
  * Types
@@ -48,14 +62,22 @@ const log = createLogger({ name: 'plex-config', context: { subsystem: 'plex' } }
 export const fromStream = (cfg = {}) => {
   if (cfg.mux && cfg.mux.isProtomux) return cfg
   const { stream, onError, ...opts } = cfg
-  const mux = Protomux.from(stream, opts)
+  const existingMux = getMuxFromStream(stream)
+  const mux = existingMux ?? Protomux.from(stream, opts)
+  if (!existingMux && stream && typeof stream === 'object') {
+    try {
+      stream[muxSymbol] = mux
+    } catch {
+      // Ignore if stream is frozen/sealed
+    }
+  }
   const onerror = (err) => {
     const handled = onError ? onError(err) : undefined;
     if (handled) return;
     const error = err instanceof Error ? err : new Error(String(err));
     log.error('plex stream error', error);
   };
-  stream.once("error", onerror);
+  if (!existingMux && stream?.once) stream.once('error', onerror);
   return { ...opts, stream, mux }
 }
 
