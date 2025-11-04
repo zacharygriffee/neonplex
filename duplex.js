@@ -1,4 +1,5 @@
 // @ts-check
+import process from 'process'
 import { Duplex } from 'streamx'
 import { normalizeCfg } from './config.js'
 import {listenChannel, connectChannel, unpairPlexChannel, getChannel} from './channel.js'

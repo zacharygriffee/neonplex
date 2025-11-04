@@ -1,4 +1,5 @@
 // @ts-check
+import process from 'process';
 import { fs, isFsAvailable } from './platform/fs.js';
 import { path } from './platform/path.js';
 import { EventEmitter } from './platform/events.js';
@@ -132,7 +133,10 @@ export function createPeerPool () {
     return pickRoundRobin(list);
   }
 
-  function keyOf (id, lane) { return `${b4a.from(id).toString('hex')}::${lane || 'rpc'}`; }
+  function keyOf (id, lane) {
+    const hex = id ? b4a.toString(id, 'hex') : '';
+    return `${hex}::${lane || 'rpc'}`;
+  }
 
   function getClient (entry, id, lane, eagerOpen) {
     const k = keyOf(id, lane);

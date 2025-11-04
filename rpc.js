@@ -1,4 +1,5 @@
 // @ts-check
+import process from 'process';
 import { fs, isFsAvailable } from './platform/fs.js';
 import { path } from './platform/path.js';
 import b4a from 'b4a';

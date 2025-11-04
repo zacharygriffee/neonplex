@@ -1,6 +1,6 @@
 {
   "name": "@neonloom/plex",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "private": false,
   "type": "module",
   "description": "Standalone Plex multiplexer toolkit extracted from NeonLoom core.",
@@ -29,6 +29,23 @@
     "./log": "./log/index.js",
     "./env": "./env/index.js"
   },
+  "imports": {
+    "fs": {
+      "bare": "bare-fs"
+    },
+    "fs/promises": {
+      "bare": "bare-fs/promises"
+    },
+    "path": {
+      "bare": "bare-path"
+    },
+    "process": {
+      "bare": "bare-process"
+    },
+    "process/global": {
+      "bare": "bare-process/global"
+    }
+  },
   "files": [
     "*.js",
     "dev/**/*.js",
@@ -44,13 +61,17 @@
     "types/**/*.d.ts"
   ],
   "scripts": {
-    "test": "brittle test/*.brittle.test.js",
+    "check:bare": "node scripts/enforce/check-bare-imports.mjs",
+    "test": "npm run check:bare && brittle test/*.brittle.test.js",
     "smoke": "npm run smoke:tcp && npm run smoke:ws",
     "smoke:tcp": "node dev/smoke-tcp.js",
     "smoke:ws": "node dev/smoke-ws.js"
   },
   "types": "./types/index.d.ts",
   "dependencies": {
+    "bare-fs": "^4.5.0",
+    "bare-path": "^3.0.0",
+    "bare-process": "^4.2.2",
     "b4a": "^1.6.7",
     "compact-encoding": "^2.16.1",
     "duplex-through": "^1.0.2",

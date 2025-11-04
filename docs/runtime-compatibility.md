@@ -8,6 +8,7 @@
 - **Core multiplexing (`duplex`, `channel`, `peer`, `service`, `bytes`, `codec`, `result`)** use plain ESM, `streamx`, `b4a`, and `protomux` — all runtime-agnostic provided that `Uint8Array`/streams exist.
 - **Node-specific concerns** live in the optional layers (`log`, `env`, `pool`, `rpc`) because they reference `fs`, `path`, and `events` statically. Bare can satisfy these via import maps/aliases, but browsers need shims or stubs.
 - **Dev tooling (`dev/*`, smoke scripts)** intentionally target Node for local debugging and can be excluded from production bundles.
+- **Dual runtime guard**: the root `package.json` now ships a Bare-friendly import map plus `npm run check:bare`, preventing `node:*` specifiers from landing on main.
 
 ## Module Matrix
 
@@ -30,6 +31,9 @@ Legend: ✅ works out-of-the-box, ⚠️ needs shims/aliases, 🚫 not supported
 
 - Bare exposes Node-compatible APIs through shim packages (`fs` → `bare-node-fs`) when declared in the consumer’s `package.json`.  
   Our imports already use bare-friendly specifiers (`'fs'`, `'path'`, `'events'`), so Bare consumers can alias them to the corresponding `bare-*` packages without additional transforms.
+- The repo now includes the import map directly in `package.json`, mapping `fs`, `fs/promises`, `path`, `process`, and `process/global` to their Bare counterparts. Node ignores these entries while Bare consumes them.
+- `npm run check:bare` runs `scripts/enforce/check-bare-imports.mjs`, which scans for `node:*` specifiers before the brittle suite. CI should call this script (already part of `npm test`).
+- Need another shim? Consult the compatibility matrix in `/home/zevilz/Virtualia/cyberpunk-conspiracy-website/docs/platforms/bare/bare-modules.md` (or the companion `node-compatibility.md`) for the full list of Node → Bare mappings.
 - Environment variables (`process.env`) are available in Bare via `bare-process`. Continue to guard lookups (`process?.env?.FOO`) so bundlers can substitute.
 - Dependencies to verify in Bare:
   - `protomux` and `streamx` have been reported to work across Node and Bare.
@@ -38,9 +42,8 @@ Legend: ✅ works out-of-the-box, ⚠️ needs shims/aliases, 🚫 not supported
 
 ## Next Steps
 
-1. **Monitor platform adapters** to ensure plain `'fs'`, `'path'`, and `'events'` specifiers stay optional via lazy imports or documented aliases.  
-2. **Document consumer guidance** for Bare: sample `package.json` showing `imports` mapping / aliases to `bare-*` packages.  
-3. **Automate smoke tests** for Bare via CI (run `bare` once adapters are in place).  
-4. **Revisit browser support** after the initial Node/Bare release, including conditional exports and dedicated smoke tests.
+1. **Monitor platform adapters** to ensure `'fs'`, `'path'`, and `'events'` usage stays lazy so browser bundles can tree-shake them.
+2. **Automate smoke tests** for Bare via CI (run a minimal `bare node dev/smoke-*.js` flow or similar harness).  
+3. **Revisit browser support** after the initial Node/Bare release, including conditional exports and dedicated smoke tests.
 
 Track these follow-ups in `todo.md` for prioritization.

@@ -1,3 +1,4 @@
+import process from 'process'
 import { test } from 'brittle'
 import duplexThrough from 'duplex-through'
 import b4a from 'b4a'

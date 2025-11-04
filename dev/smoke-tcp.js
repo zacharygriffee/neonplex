@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 // @ts-check
+import process from 'process'
 import assert from 'assert/strict'
 import net from 'net'
 import b4a from 'b4a'

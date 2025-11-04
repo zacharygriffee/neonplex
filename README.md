@@ -106,7 +106,7 @@ const wsStream = createWebSocketStream(webSocket);
 ## Environments
 
 - **Node.js**: Tested against active LTS. TCP transports typically use `net` sockets as shown above.
-- **Bare runtime**: Core modules function when Bare provides Node-compatible shims (`bare-*`). Formal docs will follow; for now the library defers to runtime adapters and avoids Node-only fallbacks when unavailable.
+- **Bare runtime**: Ships a top-level import map (`package.json#imports`) so Bare resolves builtins like `fs`, `path`, and `process` to the matching `bare-*` modules. Keep the guard (`npm run check:bare`) green to ensure no `node:` specifiers slip in. For additional shims, refer to `/home/zevilz/Virtualia/cyberpunk-conspiracy-website/docs/platforms/bare/{bare-modules.md,node-compatibility.md}`.
 - **Binary data**: Always use `b4a` utilities for buffers to remain portable across environments.
 
 ## Logging
@@ -115,13 +115,9 @@ Structured logging lives in `log/index.js`. Pass `PLEX_MUX_LOG_LEVEL` (or `NL_LO
 
 ## Testing & scripts
 
-Run the brittle suite:
-
-```sh
-npm test
-```
-
-Upcoming smoke tests will live under `npm run smoke:*` scripts and use the `dev/` utilities to exercise TCP and WebSocket transports end-to-end.
+- `npm run check:bare`: static guard that fails if any `node:*` specifier sneaks into the tree.
+- `npm test`: runs the Bare guard and then executes the brittle suite (`test/*.brittle.test.js`).
+- `npm run smoke:*`: TCP and WebSocket smoke tests that exercise the dev helpers end-to-end.
 
 - More architectural details live in `docs/architecture.md`.
 - Runtime compatibility notes (Node & Bare focus) live in `docs/runtime-compatibility.md`.

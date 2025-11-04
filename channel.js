@@ -1,4 +1,5 @@
 // @ts-check
+import process from 'process'
 import b4a from 'b4a'
 import { normalizeCfg, zeroBuff } from './config.js'
 import { createLogger } from './log/index.js'
@@ -42,7 +43,7 @@ export const ensurePlexChannel = (cfg = {}) => {
   }
 
   const { _dataEncoder, _handshakeEncoder } = _cfg
-  log.debug('create channel', { protocol, id: id ? Buffer.from(id).toString('hex') : undefined });
+  log.debug('create channel', { protocol, id: id ? b4a.toString(id, 'hex') : undefined });
   const channel = mux.createChannel({
     ..._cfg,
     id,
@@ -60,7 +61,7 @@ export const ensurePlexChannel = (cfg = {}) => {
     log.debug('plex send', { protocol, len, res });
     return res;
   }
-  log.debug?.('ensure channel new', { protocol, id: id ? b4a.toString(b4a.from(id), 'hex') : undefined });
+  log.debug?.('ensure channel new', { protocol, id: id ? b4a.toString(id, 'hex') : undefined });
   return _cfg
 
   function onmessage (msg) {
@@ -98,7 +99,7 @@ export const pairPlexChannel = (cfg = {}, onPair) => {
   const { mux, id, protocol, onPair: _cfg_onPair = () => {} } = _cfg
   _cfg.onPair = (cfg) => (onPair || _cfg_onPair)(cfg);
   mux.pair({ id, protocol }, () => {
-    log.debug('pair callback invoked', { protocol, id: id ? Buffer.from(id).toString('hex') : undefined });
+    log.debug('pair callback invoked', { protocol, id: id ? b4a.toString(id, 'hex') : undefined });
     _cfg.onPair(openPlexChannel(_cfg));
   });
   return _cfg
