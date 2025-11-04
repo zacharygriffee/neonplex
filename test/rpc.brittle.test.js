@@ -7,6 +7,80 @@ import { createPeer } from '../peer.js'
 import { serveStorePortOverPlex, createStorePortProxyOverPlex } from '../rpc.js'
 import { withStoreCaps } from '../service.js'
 
+const setEnv = (key, value) => {
+  process.env[key] = value
+}
+
+const restoreEnv = (key, original) => {
+  if (original === undefined) {
+    try {
+      delete process.env[key]
+    } catch {
+      process.env[key] = ''
+    }
+  } else {
+    process.env[key] = original
+  }
+}
+
+const asap = typeof queueMicrotask === 'function'
+  ? queueMicrotask
+  : (fn) => Promise.resolve().then(fn)
+
+const ensureAbortController = () => {
+  if (typeof AbortController === 'function') return AbortController
+class SimpleAbortSignal {
+  constructor () {
+    this.aborted = false
+    this.reason = undefined
+    this._listeners = new Set()
+    this._listenerMap = new Map()
+  }
+  addEventListener (event, handler, opts) {
+    if (event !== 'abort' || typeof handler !== 'function') return
+    if (this.aborted) {
+      asap(() => handler({ type: 'abort', target: this }))
+      return
+    }
+    const wrapped = opts?.once
+      ? (evt) => {
+          this.removeEventListener('abort', handler)
+          handler(evt)
+        }
+      : handler
+    this._listenerMap.set(handler, wrapped)
+    this._listeners.add(wrapped)
+  }
+  removeEventListener (_event, handler) {
+    if (typeof handler !== 'function') return
+    const wrapped = this._listenerMap.get(handler) || handler
+    this._listenerMap.delete(handler)
+    this._listeners.delete(wrapped)
+  }
+    _dispatch () {
+      for (const handler of Array.from(this._listeners)) {
+        try { handler({ type: 'abort', target: this }) } catch {}
+      }
+      this._listeners.clear()
+    }
+  }
+  class SimpleAbortController {
+    constructor () {
+      this.signal = new SimpleAbortSignal()
+    }
+    abort (reason) {
+      if (this.signal.aborted) return
+      this.signal.aborted = true
+      this.signal.reason = reason
+      this.signal._dispatch()
+    }
+  }
+  globalThis.AbortController = SimpleAbortController
+  return SimpleAbortController
+}
+
+ensureAbortController()
+
 function createMemoryPort () {
   /** @type {Map<string, Uint8Array>} */
   const m = new Map()
@@ -198,8 +272,8 @@ test('rpc: client route limit closes connection', async t => {
   t.plan(4)
   const prevClientLimit = process.env.PLEX_RPC_MAX_CLIENT_ROUTES
   const prevServerLimit = process.env.PLEX_RPC_MAX_SERVER_ROUTES
-  process.env.PLEX_RPC_MAX_CLIENT_ROUTES = '1'
-  process.env.PLEX_RPC_MAX_SERVER_ROUTES = '0'
+  setEnv('PLEX_RPC_MAX_CLIENT_ROUTES', '1')
+  setEnv('PLEX_RPC_MAX_SERVER_ROUTES', '0')
 
   const [a, b] = duplexThrough()
   const id = b4a.from('ee', 'hex')
@@ -222,10 +296,8 @@ test('rpc: client route limit closes connection', async t => {
   const cli = cliPeer.connectRpc(id, { eagerOpen: true })
 
   t.teardown(() => {
-    if (prevClientLimit === undefined) delete process.env.PLEX_RPC_MAX_CLIENT_ROUTES
-    else process.env.PLEX_RPC_MAX_CLIENT_ROUTES = prevClientLimit
-    if (prevServerLimit === undefined) delete process.env.PLEX_RPC_MAX_SERVER_ROUTES
-    else process.env.PLEX_RPC_MAX_SERVER_ROUTES = prevServerLimit
+    restoreEnv('PLEX_RPC_MAX_CLIENT_ROUTES', prevClientLimit)
+    restoreEnv('PLEX_RPC_MAX_SERVER_ROUTES', prevServerLimit)
     try { srv.destroy() } catch {}
     try { cli.destroy() } catch {}
   })
@@ -258,8 +330,8 @@ test('rpc: server route limit closes connection', async t => {
   t.plan(5)
   const prevServerLimit = process.env.PLEX_RPC_MAX_SERVER_ROUTES
   const prevClientLimit = process.env.PLEX_RPC_MAX_CLIENT_ROUTES
-  process.env.PLEX_RPC_MAX_SERVER_ROUTES = '1'
-  process.env.PLEX_RPC_MAX_CLIENT_ROUTES = '0'
+  setEnv('PLEX_RPC_MAX_SERVER_ROUTES', '1')
+  setEnv('PLEX_RPC_MAX_CLIENT_ROUTES', '0')
 
   const [a, b] = duplexThrough()
   const id = b4a.from('ef', 'hex')
@@ -282,10 +354,8 @@ test('rpc: server route limit closes connection', async t => {
   const cli = cliPeer.connectRpc(id, { eagerOpen: true })
 
   t.teardown(() => {
-    if (prevServerLimit === undefined) delete process.env.PLEX_RPC_MAX_SERVER_ROUTES
-    else process.env.PLEX_RPC_MAX_SERVER_ROUTES = prevServerLimit
-    if (prevClientLimit === undefined) delete process.env.PLEX_RPC_MAX_CLIENT_ROUTES
-    else process.env.PLEX_RPC_MAX_CLIENT_ROUTES = prevClientLimit
+    restoreEnv('PLEX_RPC_MAX_SERVER_ROUTES', prevServerLimit)
+    restoreEnv('PLEX_RPC_MAX_CLIENT_ROUTES', prevClientLimit)
     try { srv.destroy() } catch {}
     try { cli.destroy() } catch {}
   })

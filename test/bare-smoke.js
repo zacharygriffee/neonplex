@@ -1,0 +1,5 @@
+console.log('bare smoke start')
+const mod = await import('../platform/path.js')
+console.log('imported path module, isPathAvailable=', mod.isPathAvailable)
+console.log('path.parse exists?', typeof mod.path.parse)
+console.log('done')

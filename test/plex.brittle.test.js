@@ -135,12 +135,15 @@ test('event ordering and handshake propagation', async t => {
   client.on('remote-open', () => orderClient.push('remote-open'))
   client.on('connection', () => orderClient.push('connection'))
 
-  // Trigger stream open after listeners have been installed to avoid race
+  const clientConnected = new Promise((resolve) => client.once('connection', resolve))
+  const serverConnected = new Promise((resolve) => server.once('connection', resolve))
+
+  // Trigger stream open after listeners and waiters have been installed to avoid race
   server.resume();
   client.resume();
 
-  await new Promise((resolve) => client.once('connection', resolve))
-  await new Promise((resolve) => server.once('connection', resolve))
+  await clientConnected
+  await serverConnected
 
   t.alike(orderServer, ['remote-open', 'connection'])
   t.alike(orderClient, ['remote-open', 'connection'])
