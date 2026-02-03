@@ -4,7 +4,7 @@ import process from 'process'
 import assert from 'assert/strict'
 import { WebSocketServer, WebSocket } from 'ws'
 import b4a from 'b4a'
-import { listen, connect, createWebSocketStream } from '../index.js'
+import { listen, connect, createWebSocketStream } from '../../index.js'
 
 const kId = b4a.from([0x9a, 0x02])
 const kPayload = b4a.from('plex-smoke-ws')
