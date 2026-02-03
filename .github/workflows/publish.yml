@@ -25,6 +25,15 @@ jobs:
           cache-dependency-path: package-lock.json
           registry-url: https://registry.npmjs.org/
 
+      - name: Configure npm auth
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN || '' }}
+        run: |
+          if [ -n "$NODE_AUTH_TOKEN" ]; then
+            npm config set //registry.npmjs.org/:_authToken "$NODE_AUTH_TOKEN"
+            npm config set //registry.npmjs.org/:always-auth true
+          fi
+
       - name: Install dependencies
         run: npm ci
 
