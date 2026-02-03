@@ -101,5 +101,6 @@ const wsStream = createWebSocketStream(webSocket);
 
 See also:
 - `docs/architecture.md` for channel/pool diagrams.
+- `docs/agents-cheatsheet.md` for quick-copy agent/automation snippets.
 - `docs/runtime-compatibility.md` for Node/Bare notes (kept brief here).
 - `docs/bare-standards.md` for shim matrix (if you care about Bare).
