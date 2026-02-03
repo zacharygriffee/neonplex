@@ -11,9 +11,16 @@ import { loadRootEnv } from './env/index.js';
 import { createLogger } from './log/index.js';
 loadRootEnv();
 
-const log = createLogger({ name: 'plex-rpc', context: { subsystem: 'plex' } });
-const clientLog = log.child({ channel: 'client' });
-const serverLog = log.child({ channel: 'server' });
+const defaultLogger = createLogger({ name: 'plex-rpc', context: { subsystem: 'plex' } });
+const noopLogger = { trace(){}, debug(){}, info(){}, warn(){}, error(){}, fatal(){}, log(){}, child(){ return this }, setLevel(){}, isLevelEnabled(){ return false } };
+const resolveLogger = (cfg) => {
+  const candidate = cfg?.logger ?? cfg?.log;
+  if (candidate === false) return noopLogger;
+  if (candidate && typeof candidate === 'object') return candidate;
+  return defaultLogger;
+};
+const clientLogger = (base) => (base.child ? base.child({ channel: 'client' }) : base);
+const serverLogger = (base) => (base.child ? base.child({ channel: 'server' }) : base);
 const STALL_WARN_MS = Number(process.env.PLEX_RPC_CLIENT_STALL_WARN_MS || 0);
 const PENDING_LOG_MS = Number(process.env.PLEX_RPC_PENDING_LOG_MS || 0);
 const DEFAULT_CLIENT_TIMEOUT_MS = Number(process.env.PLEX_RPC_CLIENT_TIMEOUT_MS || 0);
@@ -182,7 +189,7 @@ const FRAME_TRACE_PATH = process.env.PLEX_RPC_TRACE_FRAME_PATH;
 let traceStream;
 let frameTraceStream;
 
-function trace(side, event, payload) {
+function trace(log, side, event, payload) {
   if (!RPC_TRACE) return;
   const json = JSON.stringify(payload);
   const line = `[plex-rpc][trace] ${side} ${event} ${json}`;
@@ -197,11 +204,11 @@ function trace(side, event, payload) {
     traceStream.write(`${new Date().toISOString()} ${line}\n`);
   } catch (err) {
     const error = err instanceof Error ? err : new Error(String(err));
-    log.warn('plex-rpc trace append failed', error);
+    log?.warn?.('plex-rpc trace append failed', error);
   }
 }
 
-function traceFrame(side, direction, frameBuf, payload) {
+function traceFrame(log, side, direction, frameBuf, payload) {
   if (!FRAME_TRACE) return;
   const meta = {
     side,
@@ -222,7 +229,7 @@ function traceFrame(side, direction, frameBuf, payload) {
     frameTraceStream.write(`${new Date().toISOString()} ${JSON.stringify(meta)}\n`);
   } catch (err) {
     const error = err instanceof Error ? err : new Error(String(err));
-    log.warn('plex-rpc frame trace append failed', error);
+    log?.warn?.('plex-rpc frame trace append failed', error);
   }
 }
 
@@ -245,9 +252,12 @@ function envelopeFromError(e, fallback = 'Unknown error') {
 }
 
 /**
- * @param {{ duplex:any, port:{ get?:(o:any)=>Promise<any>, put?:(o:any)=>Promise<any>, del?:(o:any)=>Promise<any>, append?:(o:any)=>Promise<any>, scan?:(o:any)=>AsyncIterable<any> } }} io
+ * @param {{ duplex:any, port:{ get?:(o:any)=>Promise<any>, put?:(o:any)=>Promise<any>, del?:(o:any)=>Promise<any>, append?:(o:any)=>Promise<any>, scan?:(o:any)=>AsyncIterable<any> }, logger?:any, log?:any }} io
  */
-export function serveStorePortOverPlex({ duplex, port }) {
+export function serveStorePortOverPlex({ duplex, port, logger, log: logOpt }) {
+  const baseLog = resolveLogger({ logger, log: logOpt });
+  const log = baseLog;
+  const serverLog = serverLogger(baseLog);
   const inflight = new Map();
   const maxServerRoutes = getMaxServerRoutes();
   const serverLimitEnabled = maxServerRoutes > 0;
@@ -263,7 +273,7 @@ export function serveStorePortOverPlex({ duplex, port }) {
   };
 
   const sendFrame = (frameInfo, frameBuf) => {
-    traceFrame('server', 'tx', frameBuf, frameInfo);
+    traceFrame(log, 'server', 'tx', frameBuf, frameInfo);
     duplex.write(frameBuf);
   };
 
@@ -339,7 +349,7 @@ export function serveStorePortOverPlex({ duplex, port }) {
   }
 
   function handleReq(rid, mid, payload) {
-    trace('server', 'req', { rid, mid, payloadLen: payload?.length ?? 0 });
+    trace(log, 'server', 'req', { rid, mid, payloadLen: payload?.length ?? 0 });
     if (STALL_WARN_MS > 0) {
       serverLog.debug('received request', { rid, mid, payloadLen: payload?.length ?? 0 });
     }
@@ -417,7 +427,7 @@ export function serveStorePortOverPlex({ duplex, port }) {
 
   const onData = (buf) => {
     const f = decFrame(buf);
-    traceFrame('server', 'rx', buf, { frame: frameTypeName(f.t), rid: f.rid, mid: f.mid, more: f.more === true, payloadLen: f.payload ? f.payload.length : 0 });
+    traceFrame(log, 'server', 'rx', buf, { frame: frameTypeName(f.t), rid: f.rid, mid: f.mid, more: f.more === true, payloadLen: f.payload ? f.payload.length : 0 });
     if (f.t === FT_REQ) return handleReq(f.rid, f.mid, f.payload);
     if (f.t === FT_CANCEL) return handleCancel(f.rid);
   };
@@ -445,9 +455,12 @@ export function serveStorePortOverPlex({ duplex, port }) {
 }
 
 /**
- * @param {{ duplex:any }} io
+ * @param {{ duplex:any, logger?:any, log?:any }} io
  */
-export function createStorePortProxyOverPlex({ duplex }) {
+export function createStorePortProxyOverPlex({ duplex, logger, log: logOpt }) {
+  const baseLog = resolveLogger({ logger, log: logOpt });
+  const log = baseLog;
+  const clientLog = clientLogger(baseLog);
   let nextRid = 1;
   /** @type {Map<number, any>} */
   const routes = new Map();
@@ -649,7 +662,7 @@ export function createStorePortProxyOverPlex({ duplex }) {
     route.cancelSent = true;
     try {
       const frame = encCancelFrame(route.rid, route.mid);
-      traceFrame('client', 'tx', frame, { rid: route.rid, mid: route.mid, frame: 'cancel' });
+      traceFrame(log, 'client', 'tx', frame, { rid: route.rid, mid: route.mid, frame: 'cancel' });
       duplex.write(frame);
     } catch {}
   }
@@ -716,14 +729,14 @@ export function createStorePortProxyOverPlex({ duplex }) {
     if (computedTimeout > 0 && route.meta.timeoutMs === undefined) {
       route.meta.timeoutMs = computedTimeout;
     }
-    trace('client', 'req', { rid, mid, payloadLen: payload.length, ...route.meta });
+    trace(log, 'client', 'req', { rid, mid, payloadLen: payload.length, ...route.meta });
     clientLog.debug('request sent', { rid, mid, payloadLen: payload.length, method: MID_NAME[mid] || mid, ...route.meta });
     setupTimers(route);
     attachAbortSignal(route, signal);
     scheduleRouteTimeout(route, computedTimeout);
     try {
       const frame = encReqFrame(rid, mid, payload);
-      traceFrame('client', 'tx', frame, { rid, mid, frame: 'req', payloadLen: payload.length });
+      traceFrame(log, 'client', 'tx', frame, { rid, mid, frame: 'req', payloadLen: payload.length });
       duplex.write(frame);
     } catch (error) {
       clientLog.error('req frame write failed', { rid, mid, message: String(error?.message || error), stack: error?.stack });
@@ -831,7 +844,7 @@ export function createStorePortProxyOverPlex({ duplex }) {
 
   const onData = (buf) => {
     const frame = decFrame(buf);
-    traceFrame('client', 'rx', buf, { frame: frameTypeName(frame.t), rid: frame.rid, mid: frame.mid, more: frame.more === true, payloadLen: frame.payload ? frame.payload.length : 0 });
+    traceFrame(log, 'client', 'rx', buf, { frame: frameTypeName(frame.t), rid: frame.rid, mid: frame.mid, more: frame.more === true, payloadLen: frame.payload ? frame.payload.length : 0 });
     const route = routes.get(frame.rid);
     if (!route) {
       const expiresAt = recentlyClosed.get(frame.rid);

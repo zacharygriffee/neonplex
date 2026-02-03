@@ -66,6 +66,62 @@ test('buffered writes flush on connection and roundtrip', async t => {
   t.is(serverOpened && clientOpened, true)
 })
 
+test('listen can start before connect; connect opens eagerly', async t => {
+  t.plan(4)
+
+  const [a, b] = duplexThrough()
+  const id = b4a.from('0c', 'hex')
+
+  const server = listenDuplex({ stream: a, id, eagerOpen: true })
+  let serverOpened = false
+  server.once('connection', () => { serverOpened = true })
+
+  // Allow listen side to pair before connect is created
+  await new Promise((r) => setTimeout(r, 10))
+
+  const client = connectDuplex({ stream: b, id, eagerOpen: true })
+  let clientOpened = false
+  client.once('connection', () => { clientOpened = true })
+
+  t.teardown(() => {
+    try { server.destroy() } catch {}
+    try { client.destroy() } catch {}
+  })
+
+  await Promise.all([
+    new Promise((resolve) => server.once('remote-open', resolve)),
+    new Promise((resolve) => client.once('remote-open', resolve))
+  ])
+
+  t.ok(serverOpened)
+  t.ok(clientOpened)
+  t.is(server.isConnected?.(), true)
+  t.is(client.isConnected?.(), true)
+})
+
+test('duplex logging can be disabled via log:false', async t => {
+  t.plan(2)
+
+  const [a, b] = duplexThrough()
+  const id = b4a.from('0d', 'hex')
+
+  const server = listenDuplex({ stream: a, id, eagerOpen: true, log: false })
+  const client = connectDuplex({ stream: b, id, eagerOpen: true, log: false })
+
+  t.teardown(() => {
+    try { server.destroy() } catch {}
+    try { client.destroy() } catch {}
+  })
+
+  await Promise.all([
+    new Promise((resolve) => server.once('connection', resolve)),
+    new Promise((resolve) => client.once('connection', resolve))
+  ])
+
+  t.is(server.isConnected?.(), true)
+  t.is(client.isConnected?.(), true)
+})
+
 test('destroy triggers cleanup and disconnection', async t => {
   t.plan(3)
 

@@ -65,8 +65,8 @@
     "test": "npm run check:bare && brittle test/*.brittle.test.js",
     "test:bare": "npx --yes bare test/plex.brittle.test.js && npx --yes bare test/pool.brittle.test.js && npx --yes bare test/pool-policy.brittle.test.js && npx --yes bare test/rpc.brittle.test.js",
     "smoke": "npm run smoke:tcp && npm run smoke:ws",
-    "smoke:tcp": "node dev/smoke-tcp.js",
-    "smoke:ws": "node dev/smoke-ws.js"
+    "smoke:tcp": "node dev/smoke/tcp.js",
+    "smoke:ws": "node dev/smoke/ws.js"
   },
   "types": "./types/index.d.ts",
   "dependencies": {

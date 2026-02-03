@@ -10,7 +10,14 @@ import { loadRootEnv } from './env/index.js';
 import { createLogger } from './log/index.js';
 loadRootEnv();
 
-const log = createLogger({ name: 'peer-pool', context: { subsystem: 'plex' } });
+const defaultLogger = createLogger({ name: 'peer-pool', context: { subsystem: 'plex' } });
+const noopLogger = { trace(){}, debug(){}, info(){}, warn(){}, error(){}, fatal(){}, log(){}, child(){ return this }, setLevel(){}, isLevelEnabled(){ return false } };
+const resolveLogger = (cfg) => {
+  const candidate = cfg?.logger ?? cfg?.log;
+  if (candidate === false) return noopLogger;
+  if (candidate && typeof candidate === 'object') return candidate;
+  return defaultLogger;
+};
 
 /**
  * Minimal Peer Pool with round-robin selection.
@@ -19,7 +26,8 @@ const log = createLogger({ name: 'peer-pool', context: { subsystem: 'plex' } });
  *
  * Future hooks reserved: weights, token buckets, health, circuit breakers.
  */
-export function createPeerPool () {
+export function createPeerPool (opts = {}) {
+  const log = resolveLogger(opts);
   const TRACE_PATH = process.env.PLEX_POOL_TRACE_PATH;
   const TRACE = process.env.PLEX_POOL_TRACE === '1' || !!TRACE_PATH;
   let callSeq = 0;

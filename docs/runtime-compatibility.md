@@ -23,7 +23,7 @@
 | `pool.js`                    | ✅ | ⚠️ | 🚫 (planned) | Platform adapters cover `fs`, `path`, `events`; tracing silently degrades when file IO/EventEmitter unavailable. |
 | `rpc.js`                     | ✅ | ⚠️ | 🚫 (planned) | Same adapters as `pool`; frame/trace files skipped when file IO missing. |
 | `env/index.js`               | ✅ | ⚠️ | 🚫 (planned) | `.env` loading now optional—fails quietly without `fs`. |
-| `dev/*`, `smoke-*`           | ✅ | 🚫 | 🚫 | Node-only tooling; safe to skip outside Node. |
+| `dev/*`, `dev/smoke/*`       | ✅ | 🚫 | 🚫 | Node-only tooling; safe to skip outside Node. |
 
 Legend: ✅ works out-of-the-box, ⚠️ needs shims/aliases, 🚫 not supported.
 
@@ -33,7 +33,7 @@ Legend: ✅ works out-of-the-box, ⚠️ needs shims/aliases, 🚫 not supported
   Our imports already use bare-friendly specifiers (`'fs'`, `'path'`, `'events'`), so Bare consumers can alias them to the corresponding `bare-*` packages without additional transforms.
 - The repo now includes the import map directly in `package.json`, mapping `fs`, `fs/promises`, `path`, `process`, and `process/global` to their Bare counterparts. Node ignores these entries while Bare consumes them.
 - `npm run check:bare` runs `scripts/enforce/check-bare-imports.mjs`, which scans for `node:*` specifiers before the brittle suite. CI should call this script (already part of `npm test`).
-- Need another shim? Consult the compatibility matrix in `/home/zevilz/Virtualia/cyberpunk-conspiracy-website/docs/platforms/bare/bare-modules.md` (or the companion `node-compatibility.md`) for the full list of Node → Bare mappings.
+- Need another shim? See the Bare module matrix in `docs/bare-standards.md#bare-module-matrix` for the full list of Node → Bare mappings.
 - Environment variables (`process.env`) are available in Bare via `bare-process`. Continue to guard lookups (`process?.env?.FOO`) so bundlers can substitute.
 - Dependencies to verify in Bare:
   - `protomux` and `streamx` have been reported to work across Node and Bare.
@@ -43,7 +43,7 @@ Legend: ✅ works out-of-the-box, ⚠️ needs shims/aliases, 🚫 not supported
 ## Next Steps
 
 1. **Monitor platform adapters** to ensure `'fs'`, `'path'`, and `'events'` usage stays lazy so browser bundles can tree-shake them.
-2. **Automate smoke tests** for Bare via CI (run a minimal `bare node dev/smoke-*.js` flow or similar harness).  
+2. **Automate smoke tests** for Bare via CI (run a minimal `bare node dev/smoke/*.js` flow or similar harness).  
 3. **Revisit browser support** after the initial Node/Bare release, including conditional exports and dedicated smoke tests.
 
 Track these follow-ups in `todo.md` for prioritization.

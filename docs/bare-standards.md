@@ -37,7 +37,7 @@ Node ignores these entries and continues to resolve its builtins. Bare reads the
 
 ### Bare module matrix
 
-Every Node.js core module you are likely to touch already has a corresponding `bare-*` shim. If you need to expand the import map beyond `fs`, `path`, or `process`, pull from the following matrix (summarized from `/home/zevilz/Virtualia/cyberpunk-conspiracy-website/docs/platforms/bare/{bare-modules.md,node-compatibility.md}`):
+Every Node.js core module you are likely to touch already has a corresponding `bare-*` shim. If you need to expand the import map beyond `fs`, `path`, or `process`, pull from the following matrix (summarized from the shared Virtualia platform docs).
 
 | Node builtin      | Bare module (npm alias)          |
 |-------------------|----------------------------------|
@@ -163,6 +163,5 @@ In each repo’s `package.json`:
 - [`toolbelt/docs/docs/platforms/bare/bare-modules.md`](../toolbelt/docs/docs/platforms/bare/bare-modules.md)
 - [`HyperQuill/docs/hyper-tools/pear/making-pear-terminal-app.md`](../HyperQuill/docs/hyper-tools/pear/making-pear-terminal-app.md)
 - [`HyperQuill/docs/hyper-tools/bare/api.md`](../HyperQuill/docs/hyper-tools/bare/api.md)
-- [`/home/zevilz/Virtualia/cyberpunk-conspiracy-website/docs/platforms/bare/bare-modules.md`](/home/zevilz/Virtualia/cyberpunk-conspiracy-website/docs/platforms/bare/bare-modules.md)
-- [`/home/zevilz/Virtualia/cyberpunk-conspiracy-website/docs/platforms/bare/node-compatibility.md`](/home/zevilz/Virtualia/cyberpunk-conspiracy-website/docs/platforms/bare/node-compatibility.md)
+- Shared Virtualia platform docs (internal): `docs/platforms/bare/bare-modules.md`, `docs/platforms/bare/node-compatibility.md`.
 - Repository docs live under `docs/projects/<repo>/` (sync with `node scripts/docs/sync-docs.mjs`).

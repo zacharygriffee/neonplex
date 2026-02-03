@@ -4,9 +4,15 @@ import b4a from 'b4a'
 import { normalizeCfg, zeroBuff } from './config.js'
 import { createLogger } from './log/index.js'
 
-const log = createLogger({ name: 'plex-channel', context: { subsystem: 'plex' }, level: process.env.PLEX_MUX_LOG_LEVEL || process.env.NL_LOG_LEVEL })
+const defaultLogger = createLogger({ name: 'plex-channel', context: { subsystem: 'plex' }, level: process.env.PLEX_MUX_LOG_LEVEL || process.env.NL_LOG_LEVEL })
+const noopLogger = { trace(){}, debug(){}, info(){}, warn(){}, error(){}, fatal(){}, log(){}, child(){ return this }, setLevel(){}, isLevelEnabled(){ return false } }
+const resolveLogger = (cfg) => {
+  const candidate = cfg?.logger ?? cfg?.log
+  if (candidate === false) return noopLogger
+  if (candidate && typeof candidate === 'object') return candidate
+  return defaultLogger
+}
 
-/** Locate an existing Protomux channel by id+protocol */
 /**
  * Locate an existing Protomux channel by id+protocol.
  * @param {any} [cfg]
@@ -17,7 +23,6 @@ export const getChannel = (cfg = {}) => {
   return null
 }
 
-/** True if a channel is already open for id+protocol */
 /**
  * True if a channel is already open for id+protocol.
  * @param {any} [cfg]
@@ -27,7 +32,6 @@ export const isChannelOpen = (cfg = {}) => {
   return mux.opened({ id, protocol })
 }
 
-/** Ensure a Protomux channel exists and attach handlers. Adds plexChannel + plexSend to cfg. */
 /**
  * Ensure a Protomux channel exists and attach handlers.
  * Mutates cfg to add { plexChannel, plexSend }.
@@ -35,6 +39,7 @@ export const isChannelOpen = (cfg = {}) => {
  */
 export const ensurePlexChannel = (cfg = {}) => {
   const _cfg = normalizeCfg(cfg)
+  const log = resolveLogger(_cfg)
   const { mux, id, protocol } = _cfg
   const existing = (_cfg.plexChannel ||= getChannel({ mux, id, protocol }))
   if (existing) {
@@ -70,7 +75,6 @@ export const ensurePlexChannel = (cfg = {}) => {
   }
 }
 
-/** Open channel (creating it if needed) and send handshake */
 /**
  * Open channel (creating it if needed) and send handshake.
  * @param {any} [cfg]
@@ -88,7 +92,6 @@ export const openPlexChannel = (cfg = {}) => {
   return _cfg
 }
 
-/** Pair and open when a remote peer pairs */
 /**
  * Pair and open when a remote peer pairs.
  * @param {any} [cfg]
@@ -96,6 +99,7 @@ export const openPlexChannel = (cfg = {}) => {
  */
 export const pairPlexChannel = (cfg = {}, onPair) => {
   const _cfg = normalizeCfg(cfg)
+  const log = resolveLogger(_cfg)
   const { mux, id, protocol, onPair: _cfg_onPair = () => {} } = _cfg
   _cfg.onPair = (cfg) => (onPair || _cfg_onPair)(cfg);
   mux.pair({ id, protocol }, () => {
@@ -105,7 +109,6 @@ export const pairPlexChannel = (cfg = {}, onPair) => {
   return _cfg
 }
 
-/** Unpair a previously paired channel */
 /**
  * Unpair a previously paired channel.
  * @param {any} [cfg]
@@ -115,7 +118,6 @@ export const unpairPlexChannel = (cfg = {}) => {
   mux.unpair({ id, protocol })
 }
 
-/** Lightweight façade */
 /** Advanced: low-level listen that wires handlers directly (no Duplex wrapper). */
 export const listenChannel = (cfg = {}, onPair) => pairPlexChannel(cfg, onPair)
 /** Advanced: low-level connect that opens immediately (no Duplex wrapper). */

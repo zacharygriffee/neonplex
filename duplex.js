@@ -5,6 +5,15 @@ import { normalizeCfg } from './config.js'
 import {listenChannel, connectChannel, unpairPlexChannel, getChannel} from './channel.js'
 import { createLogger } from './log/index.js'
 
+const defaultLogger = createLogger({ name: 'plex-duplex', context: { subsystem: 'plex' }, level: process.env.PLEX_MUX_LOG_LEVEL || process.env.NL_LOG_LEVEL })
+const noopLogger = { trace(){}, debug(){}, info(){}, warn(){}, error(){}, fatal(){}, log(){}, child(){ return this }, setLevel(){}, isLevelEnabled(){ return false } }
+const resolveLogger = (cfg) => {
+  const candidate = cfg?.logger ?? cfg?.log
+  if (candidate === false) return noopLogger
+  if (candidate && typeof candidate === 'object') return candidate
+  return defaultLogger
+}
+
 /**
  * @typedef {import('./config.js').PlexBaseConfig} PlexBaseConfig
  * @typedef {import('./config.js').PlexChannelConfig} PlexChannelConfig
@@ -69,6 +78,7 @@ const extractStreamConfig = (cfg = {}) => {
 const makePlexDuplex = (role, cfg = {}) => {
   const { streamCfg, rest } = extractStreamConfig(cfg)
   const _cfg = normalizeCfg({ ...rest })
+  const log = resolveLogger(cfg)
 
   let connected = false
   let alive = true
@@ -108,8 +118,8 @@ const makePlexDuplex = (role, cfg = {}) => {
   const duplex = new Duplex({
     ...streamCfg,
     open (cb) {
-      // Always normalize and attach handlers first
-      this._cfg = normalizeCfg(_cfg)
+      // Always attach handlers first (cfg already normalized above)
+      this._cfg = _cfg
       if (role === 'listen') {
         listenChannel(this._cfg, cfg => {
           this._cfg = cfg;
@@ -128,6 +138,7 @@ const makePlexDuplex = (role, cfg = {}) => {
     read (cb) { cb(null) },
     final (cb) { cb(null) },
     destroy (cb) {
+      let err
       try {
         connected = false
         alive = false
@@ -135,10 +146,18 @@ const makePlexDuplex = (role, cfg = {}) => {
         try {
           const ch = this._cfg && this._cfg.plexChannel
           if (ch && typeof ch.close === 'function') ch.close()
-        } catch {}
-        unpairPlexChannel(this._cfg)
-      } catch {}
-      cb(null)
+        } catch (e) {
+          if (!err) err = e
+        }
+        try {
+          unpairPlexChannel(this._cfg)
+        } catch (e) {
+          if (!err) err = e
+        }
+      } catch (e) {
+        if (!err) err = e
+      }
+      cb(err || null)
     }
   })
 
@@ -179,4 +198,3 @@ export const connectDuplex = (cfg = {}) => makePlexDuplex('connect', cfg)
  * @returns {Duplex & { isConnected: () => boolean, config: any, getConfig: () => any, userData: any }}
  */
 export const listenDuplex = (cfg = {}) => makePlexDuplex('listen', cfg)
-const log = createLogger({ name: 'plex-duplex', context: { subsystem: 'plex' }, level: process.env.PLEX_MUX_LOG_LEVEL || process.env.NL_LOG_LEVEL })
